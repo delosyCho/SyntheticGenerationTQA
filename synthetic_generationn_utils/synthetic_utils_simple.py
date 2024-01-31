@@ -8,31 +8,6 @@ import operator
 
 # from hierarchical_table_utils import make_hierarchical_table, make_hierarchical_structure
 
-def extract_numbers(input_string):
-    numbers = []
-    current_number = ""
-
-    for char in input_string:
-        if char.isdigit() or char == '.':
-            current_number += char
-        elif current_number:
-            if '.' in current_number:
-                numbers.append(float(current_number))
-            else:
-                numbers.append(int(current_number))
-            current_number = ""
-
-    if current_number:
-        try:
-            if '.' in current_number:
-                numbers.append(float(current_number))
-            else:
-                numbers.append(int(current_number))
-        except:
-            None
-
-    return numbers
-
 
 def weighted_randint(a, b):
     width = b - a
@@ -83,9 +58,9 @@ class ConditionObject:
     """
     def __init__(self, column_values, is_numeric_column, column_name, col_name_sep=False):
         if is_numeric_column is True:
-            code_candidates = [0, 1, 2, 3, 4, 5]
+            code_candidates = [0]
         else:
-            code_candidates = [0, 2]
+            code_candidates = [3]
         code_index = random.choice(code_candidates)
 
         self.object_value = 0
@@ -131,7 +106,7 @@ class ConditionObject:
             self.object_value = sum(column_values) / len(column_values)
             self.object_name = random.choice(template_config.AVERAGE_COL_EXPRESSION)
         if code_index == 5:
-            # average
+            # median
             self.object_value = table_utils.median(column_values)
             self.object_name = random.choice(template_config.MEDIAN_COL_EXPRESSION)
         self.object_name = self.object_name.replace('{column}', self.column_name)
@@ -167,9 +142,9 @@ class ConditionStatement:
                                                 column_name=table_2d[0][column_index])
 
         if is_numeric_column is True:
-            code_candidates = [0, 1, 2, 3, 4, 5]
+            code_candidates = [0]
         else:
-            code_candidates = [4, 5]
+            code_candidates = [4]
         code_index = random.choice(code_candidates)
 
         self.selected_rows = []
@@ -213,7 +188,7 @@ class ConditionStatement:
 
         is_numeric_column = table_utils.check_numeric_column(table_2d, select_column_index)
         if is_numeric_column is True:
-            code_candidates = [0, 1, 2, 3]
+            code_candidates = [0]
         else:
             code_candidates = [3]
         code_index = random.choice(code_candidates)
@@ -289,6 +264,7 @@ class Statement:
                 code_candidates = [0, 1, 3, 4, 5, 6, 7]
         code_index = random.choice(code_candidates)
 
+        code_index = 0
         column_candidates = []
         for c in range(len(table_2d[0])):
             column_candidates.append(c)
@@ -303,7 +279,7 @@ class Statement:
         elif code_index == 4 or code_index == 5 or code_index == 6:
             object_num = 2
         else:
-            object_num = weighted_randint(2, 4)
+            object_num = 2
 
         self.statement_objects = []
         for o in range(object_num):
@@ -777,23 +753,6 @@ def permutate_logic(query: str):
         else:
             count += 1
 
-        nums = extract_numbers(tk)
-        if random.random() > 0.5 and len(nums) > 0:
-            value = random.choice(nums)
-            if isinstance(value, int):
-                new_value = value + int(random.random() * value)
-                tk = tk.replace(str(value), str(new_value))
-                tks[t] = tk
-                continue
-
-            elif isinstance(value, float):
-                decimal_places = len(str(value).split(".")[1])
-                new_value = value + float(random.random() * value)
-                new_value = round(new_value, decimal_places)
-                tk = tk.replace(str(value), str(new_value))
-                tks[t] = tk
-                continue
-
         if tk.find('-th positioned row\'s element') != -1:
             tk = tk.replace('-th positioned row\'s element', '-th biggest value')
             # print('11!')
@@ -802,22 +761,10 @@ def permutate_logic(query: str):
             # print('10!')
         elif tk.find('average') != -1:
             # print('9!')
-            if random.random() < 0.25:
-                tk = tk.replace('average', 'maximum')
-            elif random.random() < 0.5:
-                tk = tk.replace('average', 'minimum')
-            else:
-                tk = tk.replace('average', 'median')
-
+            tk = tk.replace('average', 'median')
         elif tk.find('median') != -1:
             # print('8!')
-            if random.random() < 0.25:
-                tk = tk.replace('median', 'maximum')
-            elif random.random() < 0.5:
-                tk = tk.replace('median', 'minimum')
-            else:
-                tk = tk.replace('median', 'average')
-
+            tk = tk.replace('median', 'average')
         elif tk.find('is greater than or equal to') != -1:
             # print('7!')
             if random.random() > 0.5:
@@ -842,95 +789,18 @@ def permutate_logic(query: str):
                 tk = tk.replace('is less than', 'is greater than')
             else:
                 tk = tk.replace('is less than', 'is less than or equal to')
-        elif tk.find('result of subtracting') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 1:
-                tk = tk.replace('result of subtracting', 'result of dividing')
-            if idx == 2:
-                tk = tk.replace('result of subtracting', 'sum of')
-            if idx == 0:
-                tk = tk.replace('result of subtracting', 'result of the multiplication')
-        elif tk.find('result of dividing') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('result of dividing', 'result of subtracting')
-            if idx == 2:
-                tk = tk.replace('result of dividing', 'sum of')
-            if idx == 1:
-                tk = tk.replace('result of dividing', 'result of the multiplication')
-        elif tk.find('sum of') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('sum of', 'result of subtracting')
-            if idx == 1:
-                tk = tk.replace('sum of', 'result of dividing')
-            if idx == 2:
-                tk = tk.replace('sum of', 'result of the multiplication')
-        elif tk.find('result of the multiplication') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('result of the multiplication', 'result of subtracting')
-            if idx == 1:
-                tk = tk.replace('result of the multiplication', 'result of dividing')
-            if idx == 2:
-                tk = tk.replace('result of the multiplication', 'sum of')
-
         elif tk.find('subtract') != -1:
             # print('3!')
-            idx = random.randint(0, 2)
-
-            if idx == 1:
-                tk = tk.replace('subtract', 'add')
-            if idx == 2:
-                tk = tk.replace('subtract', 'divide by')
-            if idx == 0:
-                tk = tk.replace('subtract', 'multiply by')
-
+            tk = tk.replace('subtract', 'add')
         elif tk.find('multiply by') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('multiply by', 'subtract')
-            if idx == 1:
-                tk = tk.replace('multiply by', 'add')
-            if idx == 2:
-                tk = tk.replace('multiply by', 'divide by')
-
+            # print('2!')
+            tk = tk.replace('multiply by', 'divide by')
         elif tk.find('divide by') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('divide by', 'subtract')
-            if idx == 1:
-                tk = tk.replace('divide by', 'add')
-            if idx == 2:
-                tk = tk.replace('divide by', 'multiply by')
-
-        elif tk.find('add') != -1:
-            idx = random.randint(0, 2)
-
-            if idx == 0:
-                tk = tk.replace('add', 'subtract')
-            if idx == 1:
-                tk = tk.replace('add', 'divide by')
-            if idx == 2:
-                tk = tk.replace('add', 'multiply by')
-
-        elif tk.find('is equal to') != -1:
             # print('1!')
-            tk = tk.replace('is equal to', 'is not equal to')
-        elif tk.find('is not equal to') != -1:
-            # print('1!')
-            tk = tk.replace('is not equal to', 'is equal to')
-
+            tk = tk.replace('divide by', 'multiply by')
         tks[t] = tk
 
     return '. And '.join(tks)
-
 
 if __name__ == "__main__":
     age_column = ['age', 27, 29, 31, 35, 45, 23, 21]
@@ -947,7 +817,6 @@ if __name__ == "__main__":
     for i in range(1000):
         rqe = ExpressionObject(table_2d=table_2d)
         print(rqe.natural_statement)
-        print(permutate_logic(rqe.natural_statement))
         print('-------------')
 
 

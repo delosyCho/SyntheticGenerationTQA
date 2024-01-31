@@ -97,7 +97,7 @@ for d in range(1, 10):
                     table_2d = convert_table_for_synthetic_generation(table_2d=table_data)
 
                     c = 0
-                    if random.randint(0, 1) == 0:
+                    if random.randint(0, 1) == 0 or True:
                         while True:
                             expression_object = ExpressionObject(table_2d=table_2d)
                             if expression_object is not None or c > 100:
@@ -164,9 +164,9 @@ for d in range(1, 10):
                 continue
 
 
-np.save('input_ids_synthetic', input_ids[:count])
-np.save('attention_mask_synthetic', attention_mask[:count])
-np.save('label_ids_synthetic', label_ids[:count])
+np.save('only_table_synthetic/input_ids_synthetic', input_ids[:count])
+np.save('only_table_synthetic/attention_mask_synthetic', attention_mask[:count])
+np.save('only_table_synthetic/label_ids_synthetic', label_ids[:count])
 
 
 
